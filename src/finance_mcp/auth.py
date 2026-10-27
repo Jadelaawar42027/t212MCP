@@ -419,7 +419,7 @@ class OwnerAuthServer:
                 req=form.get("req", ""),
                 client=client,
                 redirect_uri=claims["ru"],
-                error="Incorrect password or code.",
+                error="Incorrect password or code. Check both and try again.",
                 status=401,
             )
         self._throttle.reset(ip)
@@ -580,7 +580,7 @@ class OwnerAuthServer:
         host = urlparse(redirect_uri).netloc if redirect_uri else ""
         body = self._template.substitute(
             mode="error" if error_page else "login",
-            heading="Can’t continue sign-in" if error_page else "Sign in to allow access",
+            heading="Can’t continue sign-in" if error_page else "Sign in to Finance MCP",
             client_name=html.escape(client.name if client else ""),
             redirect_host=html.escape(host),
             req=html.escape(req, quote=True),

@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
 <meta name="color-scheme" content="light dark">
+<meta name="theme-color" content="#163a2a" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#1d4a35" media="(prefers-color-scheme: dark)">
 <title>Sign in · Finance MCP</title>
 <style>
 :root {
@@ -42,7 +44,6 @@
 html { -webkit-text-size-adjust: 100%; }
 body {
   margin: 0;
-  min-height: 100vh;
   min-height: 100dvh;
   background: var(--bg);
   color: var(--ink);
@@ -59,7 +60,6 @@ body {
   justify-content: space-between;
   gap: 48px;
 }
-.wordmark { font-weight: 650; font-size: 17px; letter-spacing: -0.01em; margin: 0; }
 .field h1 {
   font-size: clamp(40px, 5.6vw, 84px);
   line-height: 0.98;
@@ -103,7 +103,6 @@ input[type="password"], input[type="text"] {
   outline: none;
 }
 input:focus-visible { border-color: var(--focus); }
-input::placeholder { color: var(--muted); }
 #totp { letter-spacing: 0.2em; font-variant-numeric: tabular-nums; }
 button {
   width: 100%;
@@ -117,6 +116,7 @@ button {
   padding: 16px 20px;
   cursor: pointer;
   touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
   transition: transform 120ms ease, opacity 120ms ease;
 }
 button:hover { opacity: 0.88; }
@@ -131,7 +131,9 @@ button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
 }
 .after { margin: 20px 0 0; color: var(--muted); font-size: 15px; }
 [hidden] { display: none !important; }
-body.error form, body.error .lede, body.error .after { display: none; }
+.mode-error form, .mode-error .lede, .mode-error .after { display: none; }
+.next { display: none; margin: 0; }
+.mode-error .next { display: block; }
 @media (prefers-reduced-motion: reduce) { button { transition: none; } }
 @media (max-width: 820px) {
   body { grid-template-columns: 1fr; }
@@ -142,9 +144,8 @@ body.error form, body.error .lede, body.error .after { display: none; }
 }
 </style>
 </head>
-<body class="$mode">
+<body class="mode-$mode">
 <aside class="field">
-  <p class="wordmark">Finance MCP</p>
   <h1>Read-only, by design.</h1>
   <ul class="limits">
     <li><strong>Can read</strong> balances, positions, orders, dividends and cash movements.</li>
@@ -160,13 +161,14 @@ body.error form, body.error .lede, body.error .after { display: none; }
       <input type="hidden" name="req" value="$req">
       <input type="text" name="username" value="owner" autocomplete="username" hidden aria-hidden="true" tabindex="-1">
       <label for="password">Password</label>
-      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus spellcheck="false">
+      <input id="password" name="password" type="password" autocomplete="current-password" required spellcheck="false">
       <div $totp_hidden>
         <label for="totp">Authenticator code <span class="hint">The 6 digits from your authenticator app</span></label>
-        <input id="totp" name="totp" type="text" inputmode="numeric" pattern="[0-9 ]{6,7}" maxlength="7" autocomplete="one-time-code" placeholder="123456" spellcheck="false" $totp_required>
+        <input id="totp" name="totp" type="text" inputmode="numeric" pattern="[0-9 ]{6,7}" maxlength="7" autocomplete="one-time-code" spellcheck="false" $totp_required>
       </div>
       <button type="submit">Allow read-only access</button>
     </form>
+    <p class="next">Go back to Claude and start the connection again. If it keeps failing, remove the connector and add it again.</p>
     <p class="after">Only the owner of this server can sign in. Close this tab to cancel.</p>
   </div>
 </main>
