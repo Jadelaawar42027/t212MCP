@@ -105,14 +105,42 @@ POSITIONS = [
 ]
 
 INSTRUMENTS = [
-    {"ticker": "AAPL_US_EQ", "name": "Apple Inc", "shortName": "AAPL", "isin": "US0378331005",
-     "currencyCode": "USD", "type": "STOCK", "workingScheduleId": 1},
-    {"ticker": "VUSAl_EQ", "name": "Vanguard S&P 500 UCITS ETF", "shortName": "VUSA", "isin": "IE00B3XXRP09",
-     "currencyCode": "GBP", "type": "ETF", "workingScheduleId": 2},
-    {"ticker": "SAP_DE_EQ", "name": "SAP SE", "shortName": "SAP", "isin": "DE0007164600",
-     "currencyCode": "EUR", "type": "STOCK", "workingScheduleId": 3},
-    {"ticker": "APP_US_EQ", "name": "AppLovin", "shortName": "APP", "isin": "US03831W1080",
-     "currencyCode": "USD", "type": "STOCK", "workingScheduleId": 1},
+    {
+        "ticker": "AAPL_US_EQ",
+        "name": "Apple Inc",
+        "shortName": "AAPL",
+        "isin": "US0378331005",
+        "currencyCode": "USD",
+        "type": "STOCK",
+        "workingScheduleId": 1,
+    },
+    {
+        "ticker": "VUSAl_EQ",
+        "name": "Vanguard S&P 500 UCITS ETF",
+        "shortName": "VUSA",
+        "isin": "IE00B3XXRP09",
+        "currencyCode": "GBP",
+        "type": "ETF",
+        "workingScheduleId": 2,
+    },
+    {
+        "ticker": "SAP_DE_EQ",
+        "name": "SAP SE",
+        "shortName": "SAP",
+        "isin": "DE0007164600",
+        "currencyCode": "EUR",
+        "type": "STOCK",
+        "workingScheduleId": 3,
+    },
+    {
+        "ticker": "APP_US_EQ",
+        "name": "AppLovin",
+        "shortName": "APP",
+        "isin": "US03831W1080",
+        "currencyCode": "USD",
+        "type": "STOCK",
+        "workingScheduleId": 1,
+    },
 ]
 
 EXCHANGES = [
@@ -143,13 +171,27 @@ def tx(type_: str, amount: float, when: str, ccy: str = "GBP") -> dict:
 def order(oid: int, ticker: str, side: str, when: str, qty: float, price: float) -> dict:
     return {
         "order": {
-            "id": oid, "ticker": ticker, "side": side, "type": "MARKET", "status": "FILLED",
-            "createdAt": when, "currency": "USD", "quantity": qty, "filledQuantity": qty,
+            "id": oid,
+            "ticker": ticker,
+            "side": side,
+            "type": "MARKET",
+            "status": "FILLED",
+            "createdAt": when,
+            "currency": "USD",
+            "quantity": qty,
+            "filledQuantity": qty,
         },
         "fill": {
-            "id": oid * 10, "filledAt": when, "price": price, "quantity": qty, "type": "TRADE",
+            "id": oid * 10,
+            "filledAt": when,
+            "price": price,
+            "quantity": qty,
+            "type": "TRADE",
             "walletImpact": {
-                "currency": "GBP", "fxRate": 0.8, "netValue": qty * price * 0.8, "realisedProfitLoss": 0,
+                "currency": "GBP",
+                "fxRate": 0.8,
+                "netValue": qty * price * 0.8,
+                "realisedProfitLoss": 0,
                 "taxes": [{"name": "CURRENCY_CONVERSION_FEE", "quantity": 0.15, "currency": "GBP"}],
             },
         },

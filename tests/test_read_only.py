@@ -26,9 +26,7 @@ def test_client_exposes_no_write_methods():
 async def test_underlying_http_client_refuses_non_get(method, router):
     calls = []
     router.route().mock(side_effect=lambda req: calls.append(req) or httpx.Response(200))
-    c = Trading212Client(
-        env="demo", api_key="k", api_secret="s", transport=httpx.MockTransport(router.async_handler)
-    )
+    c = Trading212Client(env="demo", api_key="k", api_secret="s", transport=httpx.MockTransport(router.async_handler))
     with pytest.raises(ReadOnlyViolation):
         await c._http.request(method, "/api/v0/equity/pies")
     assert calls == [], "a non-GET request reached the network layer"

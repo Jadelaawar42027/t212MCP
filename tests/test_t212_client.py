@@ -93,7 +93,9 @@ async def test_pagination_follows_next_page_path(client, router):
         cursor = request.url.params.get("cursor")
         assert request.url.params["limit"] == "50"
         if cursor is None:
-            return httpx.Response(200, json={"items": [{"n": 1}, {"n": 2}], "nextPagePath": f"{ORDERS_PATH}?limit=50&cursor=200"})
+            return httpx.Response(
+                200, json={"items": [{"n": 1}, {"n": 2}], "nextPagePath": f"{ORDERS_PATH}?limit=50&cursor=200"}
+            )
         if cursor == "200":
             return httpx.Response(200, json={"items": [{"n": 3}], "nextPagePath": f"{ORDERS_PATH}?limit=50&cursor=100"})
         return httpx.Response(200, json={"items": [{"n": 4}], "nextPagePath": None})
@@ -149,8 +151,14 @@ async def test_client_side_throttle_waits_between_calls(client, router, clock):
 
 async def test_throttle_raises_when_wait_too_long(router, clock):
     c = Trading212Client(
-        env="demo", api_key="k", api_secret="s", transport=httpx.MockTransport(router.async_handler),
-        clock=clock, wall_clock=clock.wall, sleep=clock.sleep, max_wait=10,
+        env="demo",
+        api_key="k",
+        api_secret="s",
+        transport=httpx.MockTransport(router.async_handler),
+        clock=clock,
+        wall_clock=clock.wall,
+        sleep=clock.sleep,
+        max_wait=10,
     )
     router.get("/api/v0/equity/metadata/instruments").respond(json=[])
     await c.get("/api/v0/equity/metadata/instruments")
@@ -185,7 +193,8 @@ async def test_remaining_zero_header_blocks_next_call(client, router, clock):
     router.get(ORDERS_PATH).mock(
         side_effect=[
             httpx.Response(
-                200, json={"items": [], "nextPagePath": None},
+                200,
+                json={"items": [], "nextPagePath": None},
                 headers={"x-ratelimit-remaining": "0", "x-ratelimit-reset": str(clock.wall() + 7)},
             ),
             httpx.Response(200, json={"items": [], "nextPagePath": None}),
@@ -201,8 +210,13 @@ async def test_remaining_zero_header_blocks_next_call(client, router, clock):
 
 @pytest.mark.parametrize(
     ("status", "match"),
-    [(401, "rejected the API credentials"), (403, "'account' permission"), (404, "Not found"),
-     (408, "timed out"), (500, "HTTP 500")],
+    [
+        (401, "rejected the API credentials"),
+        (403, "'account' permission"),
+        (404, "Not found"),
+        (408, "timed out"),
+        (500, "HTTP 500"),
+    ],
 )
 async def test_error_messages_are_clean(client, router, status, match, caplog):
     caplog.set_level(logging.DEBUG)
