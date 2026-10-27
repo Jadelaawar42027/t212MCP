@@ -33,10 +33,14 @@ from finance_mcp.providers import Provider, load_providers
 log = logging.getLogger("finance_mcp")
 
 INSTRUCTIONS = (
-    "Read-only access to the owner's brokerage data (Trading 212). No tool can trade, move money or change "
-    "anything. Amounts are in the account currency unless a field says otherwise. Start with "
-    "portfolio_overview for portfolio questions, dividend_report for income, net_deposits_and_returns for "
-    "overall performance; use search_instruments to resolve tickers like AAPL_US_EQ."
+    "Read-only access to the owner's brokerage data (Trading 212) and bank data (Revolut, via Enable "
+    "Banking). No tool can trade, move money or change anything. Amounts are in the account currency unless "
+    "a field says otherwise. Trading 212: start with portfolio_overview for portfolio questions, "
+    "dividend_report for income, net_deposits_and_returns for overall performance; use search_instruments to "
+    "resolve tickers like AAPL_US_EQ. Revolut: spending_summary for spending questions, budget_status for the "
+    "monthly living budget, get_balances for cash, "
+    "revolut_get_transactions for individual payments; check consent_status during reviews and warn when the "
+    "bank consent is close to expiring. Revolut data can be a few hours old (bank refresh limits)."
 )
 
 

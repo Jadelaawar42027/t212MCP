@@ -25,10 +25,10 @@ class Provider(Protocol):
 
 
 def load_providers() -> list[Provider]:
-    from finance_mcp.providers import trading212
+    from finance_mcp.providers import revolut, trading212
 
     providers: list[Provider] = []
-    for module in (trading212,):
+    for module in (trading212, revolut):
         provider = module.from_env()
         if provider is None:
             log.warning("provider %s not configured; skipping", module.__name__.rsplit(".", 1)[-1])

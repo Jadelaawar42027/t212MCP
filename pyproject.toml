@@ -1,7 +1,7 @@
 [project]
 name = "finance-mcp"
 version = "0.1.0"
-description = "Personal, read-only remote MCP server for brokerage accounts (Trading 212 first)."
+description = "Personal, read-only remote MCP server for Trading 212 and Revolut (via Enable Banking)."
 authors = [
     { name = "jadelaawar42027", email = "alawar.jad@gmail.com" }
 ]
@@ -11,8 +11,9 @@ dependencies = [
     "mcp>=2.3,<3",
     "pydantic>=2.9",
     "pydantic-settings>=2.6",
-    "pyjwt>=2.9",
+    "pyjwt[crypto]>=2.9",
     "pyotp>=2.9",
+    "tzdata>=2024.1",
     "uvicorn>=0.32",
 ]
 

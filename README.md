@@ -1,12 +1,13 @@
 # finance-mcp
 
-A personal, **read-only** remote MCP server for your Trading 212 account, built to be added to
-claude.ai as a custom connector. It runs on Railway, and only you can sign in, via OAuth 2.1.
-It's laid out for more providers (Revolut is next).
+A personal, **read-only** remote MCP server for your Trading 212 account and your Revolut bank
+accounts (through Enable Banking), built to be added to claude.ai as a custom connector. It runs
+on Railway, and only you can sign in, via OAuth 2.1.
 
 - **Read-only, enforced in code.** The only outbound HTTP client is wrapped in a transport that
   refuses anything other than GET, and tests fail if a POST/PUT/PATCH/DELETE becomes possible.
-  The tools are also marked `readOnlyHint` in MCP.
+  The tools are also marked `readOnlyHint` in MCP. The two POSTs Enable Banking needs to create a
+  bank consent live only in `scripts/link_revolut.py`, which you run on your machine.
 - **Private.** `/mcp` needs a bearer token that only the sign-in flow issues. Signing in needs your
   password plus an authenticator code (recommended). `/health` returns 200 with an empty body,
   and every other path returns 404.
@@ -30,7 +31,33 @@ It's laid out for more providers (Revolut is next).
 | `dividend_report(period)` | By month and by ticker, trailing-12-month income (`ttm`, `ytd`, `all`, `2025`) |
 | `net_deposits_and_returns` | Deposited vs current value, simple return, annualized money-weighted return (XIRR) |
 
+### Revolut (Enable Banking)
+
+| Tool | What it returns |
+| --- | --- |
+| `list_accounts` | Every account and pocket in the consent, with your labels, currency, IBAN and `kind` (`current` / `pocket`) |
+| `get_balances(account?)` | Booked and available balance per account, totals per currency (Revolut only reports available) |
+| `revolut_get_transactions(account?, from_date?, to_date?, limit?, cursor?)` | Signed amounts (negative = out), merchant, description, date, category. Default last 30 days, paginated with `next_cursor` |
+| `spending_summary(period, from_date?, to_date?, account?)` | `today`, `yesterday`, `week`, `month` or `custom`: spend by category, top merchants, in vs out. Excludes moves between your own accounts/pockets and Trading 212 |
+| `budget_status` | This month's spending from the living-expenses pocket (`LIVING_ACCOUNT`) vs `LIVING_BUDGET`: spent, % of month elapsed vs % of budget used, projected month-end, daily allowance left |
+| `consent_status` | Consent status and days until it expires (warns at 14 days) |
+
+Categories: groceries, eating out, transport, subscriptions, shopping, travel, other. They come
+from merchant category codes when the bank sends them, otherwise from merchant-name rules in
+`providers/revolut/categorize.py`. Add a keyword there to fix a merchant that lands in "other".
+
 Notes:
+- **Data can be a few hours old.** Under PSD2 the bank allows about 4 background refreshes a day
+  per account and endpoint. Balances and transactions are cached for 6h
+  (`ENABLE_BANKING_CACHE_TTL_HOURS`, 4–24). When the daily allowance is used up, or the bank
+  answers 429, the tools serve the cached data with a note and wait 6h before trying again.
+- Transactions are fetched for the last 90 days (`ENABLE_BANKING_HISTORY_DAYS`). Revolut usually
+  only allows 90 days once the consent is more than an hour old.
+- Revolut pockets come back as separate accounts (`cash_account_type` `SVGS`), and card payments
+  are made straight from them. That is why `budget_status` tracks one pocket.
+
+### Trading 212 notes
+
 - The history endpoints have no date filters upstream. Dates are filtered on the server, and
   paging stops once a page is older than `from_date`.
 - Paging is capped at `TRADING212_MAX_PAGES`, 50 rows per page. When the cap is hit, responses
@@ -60,6 +87,41 @@ Limits worth knowing:
   A restart forgets it, so an already-used refresh token from before the restart could be
   replayed until it expires.
 - Keep `numReplicas` at 1. It's set in `railway.json`.
+
+## Revolut setup (Enable Banking)
+
+Enable Banking is used in **production restricted mode**: the app can only read accounts you
+linked yourself, so no contract with them is needed.
+
+1. **Register the app** at https://enablebanking.com/cp/applications. Choose Production, set the
+   redirect URL to `https://<your-domain>/callback`, and keep the generated private key `.pem`.
+   That page can show a 404 on this server; that's expected, you only copy its URL.
+2. **Activate it** with "Activate by linking accounts" and link Revolut (country ES).
+3. **Keep the key safe.** `*.pem` and `*.key` are git- and docker-ignored. Store the file outside
+   Downloads, e.g. `~/.config/finance-mcp/enablebanking.pem`, and `chmod 600` it. The server never
+   logs the key or any JWT.
+4. **Fill in `.env`:** `ENABLE_BANKING_APP_ID` and `ENABLE_BANKING_KEY_PATH`.
+5. **Create the consent** (the server can't do this, it's GET-only):
+
+   ```bash
+   uv run python scripts/link_revolut.py
+   ```
+
+   Open the printed URL, approve in Revolut, then paste back the full URL you land on. The script
+   prints the session ID, the consent expiry and every account. Put the session ID in `.env` as
+   `ENABLE_BANKING_SESSION_ID`. It also prints an `ACCOUNT_LABELS` template keyed by
+   `identification_hash`, which stays the same when you re-consent.
+6. **On Railway,** set the same values, with the key as base64 instead of a path (see below).
+
+**Re-consent (every 180 days for Revolut).** `consent_status` warns when 14 days or fewer are
+left. Then:
+
+1. Run `uv run python scripts/link_revolut.py` again and approve in Revolut.
+2. Update `ENABLE_BANKING_SESSION_ID` in `.env`.
+3. Update it on Railway:
+   `printf %s '<new session id>' | railway variable set ENABLE_BANKING_SESSION_ID --stdin --service finance-mcp`.
+
+Labels keyed by `identification_hash` keep working, so `ACCOUNT_LABELS` doesn't need to change.
 
 ## Run locally
 
@@ -106,6 +168,10 @@ printf %s '<long password>'   | railway variable set OWNER_PASSWORD        --std
 uv run python -c "import pyotp; print(pyotp.random_base32())"     # → add to your authenticator app
 printf %s '<that base32 secret>' | railway variable set OWNER_TOTP_SECRET --stdin --service finance-mcp --skip-deploys
 openssl rand -base64 48 | tr -d '\n' | railway variable set OAUTH_SIGNING_KEY --stdin --service finance-mcp --skip-deploys
+# Revolut (optional). The key goes in as base64 of the .pem, piped straight from the file.
+railway variable set ENABLE_BANKING_APP_ID=<app id> LIVING_BUDGET=1500 --service finance-mcp --skip-deploys
+base64 -i /path/to/enablebanking.pem | tr -d '\n' | railway variable set ENABLE_BANKING_PRIVATE_KEY_B64 --stdin --service finance-mcp --skip-deploys
+printf %s '<session id>' | railway variable set ENABLE_BANKING_SESSION_ID --stdin --service finance-mcp --skip-deploys
 
 # 4. Deploy (builds the Dockerfile; healthcheck is /health)
 railway up --service finance-mcp --detach
@@ -178,6 +244,17 @@ then run `/mcp` to sign in.
 | `TRADING212_TIMEOUT_SECONDS` | no | Default 15 |
 | `ACCESS_TOKEN_TTL_SECONDS` / `REFRESH_TOKEN_TTL_SECONDS` | no | Defaults 3600 / 2592000 |
 | `PORT` | set by Railway | Default 8000 |
+| `ENABLE_BANKING_APP_ID` | for Revolut | Application ID from the Enable Banking Control Panel |
+| `ENABLE_BANKING_KEY_PATH` | for Revolut (local) | Path to the app's private key `.pem`. Wins if both key variables are set |
+| `ENABLE_BANKING_PRIVATE_KEY_B64` | for Revolut (Railway) | `base64 -i app.pem \| tr -d '\n'` |
+| `ENABLE_BANKING_SESSION_ID` | for Revolut | Printed by `scripts/link_revolut.py` |
+| `ACCOUNT_LABELS` | no | JSON, `identification_hash` (or IBAN / uid) → label |
+| `LIVING_BUDGET` | no | Monthly living budget, default 1500 |
+| `LIVING_ACCOUNT` | no | Pocket that counts toward it, default `Living Expenses Monthly` |
+| `OWNER_NAMES` | no | Comma-separated names on transfers to your own accounts at other banks |
+| `ENABLE_BANKING_CACHE_TTL_HOURS` | no | 4–24, default 6 |
+| `ENABLE_BANKING_HISTORY_DAYS` | no | Default 90 |
+| `TIMEZONE` | no | For today/week/month boundaries, default `Europe/Madrid` |
 
 ## Layout
 
@@ -191,14 +268,9 @@ src/finance_mcp/
   providers/
     __init__.py        Provider protocol + registry
     trading212/        client.py (GET-only, throttle, cache, paging), tools.py, models.py, analytics.py
-    revolut/           placeholder
-tests/                 respx-mocked unit tests (client, tools, GET-only guarantee, auth)
+    revolut/           keys.py (key loading, JWT), client.py (GET-only, cache, pull budget, paging),
+                       categorize.py (category + transfer rules), tools.py
+tests/                 respx-mocked unit tests (clients, tools, GET-only guarantee, auth)
 scripts/smoke.py       end-to-end check against the demo account
+scripts/link_revolut.py  creates/renews the Revolut consent (the only code that POSTs)
 ```
-
-**Adding Revolut later:**
-1. Create `providers/revolut/` with a `from_env()` that returns an object with `name`,
-   `register_tools(mcp)` and `aclose()`.
-2. Add it to `load_providers()`.
-3. Give its tools distinct names, e.g. `revolut_get_accounts`.
-4. Make outbound calls only through `finance_mcp.http.get_only_client`.

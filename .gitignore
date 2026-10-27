@@ -22,3 +22,7 @@ build/
 screenshots/
 .taste-skill/
 .playwright-cli/
+
+# Enable Banking private keys
+*.pem
+*.key

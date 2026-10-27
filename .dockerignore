@@ -11,3 +11,5 @@ scripts
 screenshots
 *.md
 !README.md
+*.pem
+*.key
