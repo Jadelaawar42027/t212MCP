@@ -55,11 +55,13 @@ def _sources() -> list[tuple[Path, str]]:
 
 def test_no_outbound_write_calls_in_source():
     pattern = re.compile(r"\.(post|put|patch|delete|request|stream|send)\s*\(")
+    # Reading an *inbound* Starlette request body is not an outbound HTTP call.
+    inbound = re.compile(r"\brequest\.stream\(\)")
     offenders = [
         f"{p.relative_to(SRC)}:{n}: {line.strip()}"
         for p, text in _sources()
         for n, line in enumerate(text.splitlines(), 1)
-        if pattern.search(line)
+        if pattern.search(inbound.sub("", line))
     ]
     assert offenders == [], offenders
 

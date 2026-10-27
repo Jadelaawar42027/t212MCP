@@ -1,0 +1,174 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<meta name="color-scheme" content="light dark">
+<title>Sign in · Finance MCP</title>
+<style>
+:root {
+  --bg: #f3f4f1;
+  --surface: #e6e9e3;
+  --ink: #111813;
+  --muted: #4a544c;
+  --field: #163a2a;
+  --field-ink: #eef3ec;
+  --field-muted: #b5c7b9;
+  --accent: #111813;
+  --accent-ink: #f3f4f1;
+  --danger-bg: #f6dcd6;
+  --danger-ink: #6b1a0c;
+  --focus: #2f7a52;
+  --font: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f1411;
+    --surface: #1b231e;
+    --ink: #e9eee8;
+    --muted: #a7b3aa;
+    --field: #1d4a35;
+    --field-ink: #eef3ec;
+    --field-muted: #b8cbbd;
+    --accent: #e9eee8;
+    --accent-ink: #0f1411;
+    --danger-bg: #3d1a14;
+    --danger-ink: #ffd2c8;
+    --focus: #7fd1a4;
+  }
+}
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--bg);
+  color: var(--ink);
+  font: 17px/1.5 var(--font);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+}
+.field {
+  background: var(--field);
+  color: var(--field-ink);
+  padding: clamp(28px, 5vw, 72px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 48px;
+}
+.wordmark { font-weight: 650; font-size: 17px; letter-spacing: -0.01em; margin: 0; }
+.field h1 {
+  font-size: clamp(40px, 5.6vw, 84px);
+  line-height: 0.98;
+  letter-spacing: -0.035em;
+  font-weight: 700;
+  margin: 0;
+  max-width: 9ch;
+  text-wrap: balance;
+}
+.limits { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; max-width: 34ch; }
+.limits li { color: var(--field-muted); }
+.limits li strong { color: var(--field-ink); font-weight: 600; }
+main {
+  padding: clamp(28px, 5vw, 72px);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+.panel { width: 100%; max-width: 420px; }
+.panel h2 {
+  font-size: clamp(26px, 2.4vw, 34px);
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 12px;
+  font-weight: 700;
+}
+.lede { margin: 0 0 32px; color: var(--ink); }
+.lede b { font-weight: 600; overflow-wrap: anywhere; }
+label { display: block; font-weight: 600; margin: 0 0 6px; }
+.hint { display: block; font-weight: 400; color: var(--muted); font-size: 15px; }
+input[type="password"], input[type="text"] {
+  width: 100%;
+  font: inherit;
+  font-size: 18px;
+  color: var(--ink);
+  background: var(--surface);
+  border: 2px solid transparent;
+  border-radius: 0;
+  padding: 14px 16px;
+  margin: 0 0 22px;
+  outline: none;
+}
+input:focus-visible { border-color: var(--focus); }
+input::placeholder { color: var(--muted); }
+#totp { letter-spacing: 0.2em; font-variant-numeric: tabular-nums; }
+button {
+  width: 100%;
+  font: inherit;
+  font-weight: 650;
+  font-size: 18px;
+  color: var(--accent-ink);
+  background: var(--accent);
+  border: 0;
+  border-radius: 0;
+  padding: 16px 20px;
+  cursor: pointer;
+  touch-action: manipulation;
+  transition: transform 120ms ease, opacity 120ms ease;
+}
+button:hover { opacity: 0.88; }
+button:active { transform: translateY(1px); }
+button:focus-visible { outline: 3px solid var(--focus); outline-offset: 3px; }
+.error {
+  background: var(--danger-bg);
+  color: var(--danger-ink);
+  padding: 14px 16px;
+  margin: 0 0 24px;
+  font-weight: 500;
+}
+.after { margin: 20px 0 0; color: var(--muted); font-size: 15px; }
+[hidden] { display: none !important; }
+body.error form, body.error .lede, body.error .after { display: none; }
+@media (prefers-reduced-motion: reduce) { button { transition: none; } }
+@media (max-width: 820px) {
+  body { grid-template-columns: 1fr; }
+  .field { gap: 28px; padding-bottom: 32px; }
+  .field h1 { font-size: clamp(38px, 11vw, 56px); max-width: 12ch; }
+  main { justify-content: flex-start; padding-top: 32px; }
+  .panel { max-width: none; }
+}
+</style>
+</head>
+<body class="$mode">
+<aside class="field">
+  <p class="wordmark">Finance MCP</p>
+  <h1>Read-only, by design.</h1>
+  <ul class="limits">
+    <li><strong>Can read</strong> balances, positions, orders, dividends and cash movements.</li>
+    <li><strong>Cannot</strong> trade, move money, or change anything in your accounts.</li>
+  </ul>
+</aside>
+<main>
+  <div class="panel">
+    <h2>$heading</h2>
+    <p class="lede"><b>$client_name</b> is asking to read your accounts. After you sign in you’ll go back to <b>$redirect_host</b>.</p>
+    <p class="error" role="alert" $error_hidden>$error</p>
+    <form method="post" action="/authorize" autocomplete="on">
+      <input type="hidden" name="req" value="$req">
+      <input type="text" name="username" value="owner" autocomplete="username" hidden aria-hidden="true" tabindex="-1">
+      <label for="password">Password</label>
+      <input id="password" name="password" type="password" autocomplete="current-password" required autofocus spellcheck="false">
+      <div $totp_hidden>
+        <label for="totp">Authenticator code <span class="hint">The 6 digits from your authenticator app</span></label>
+        <input id="totp" name="totp" type="text" inputmode="numeric" pattern="[0-9 ]{6,7}" maxlength="7" autocomplete="one-time-code" placeholder="123456" spellcheck="false" $totp_required>
+      </div>
+      <button type="submit">Allow read-only access</button>
+    </form>
+    <p class="after">Only the owner of this server can sign in. Close this tab to cancel.</p>
+  </div>
+</main>
+</body>
+</html>
