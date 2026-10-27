@@ -589,7 +589,15 @@ class OwnerAuthServer:
             totp_hidden="" if self._totp else "hidden",
             totp_required="required" if self._totp else "",
         )
-        return HTMLResponse(body, status_code=status, headers=PAGE_HEADERS)
+        headers = dict(PAGE_HEADERS)
+        if redirect_uri:
+            # Browsers apply form-action to redirects after a form POST, so the
+            # client's callback origin must be allowed or the 303 to it is blocked.
+            u = urlparse(redirect_uri)
+            headers["Content-Security-Policy"] = headers["Content-Security-Policy"].replace(
+                "form-action 'self'", f"form-action 'self' {u.scheme}://{u.netloc}"
+            )
+        return HTMLResponse(body, status_code=status, headers=headers)
 
     def routes(self) -> list[Route]:
         async def as_metadata(_: Request) -> Response:

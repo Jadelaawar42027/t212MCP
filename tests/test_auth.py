@@ -472,3 +472,13 @@ def test_settings_validation():
         make_settings(public_base_url="http://example.com")
     with pytest.raises(ValueError):
         make_settings(public_base_url="https://example.com/mcp")
+
+
+def test_login_page_csp_allows_redirect_to_claude(http):
+    # Browsers apply form-action to the 303 after the login POST; without the
+    # callback origin the redirect to Claude is silently blocked.
+    client_id = register(http)
+    _, challenge = pkce()
+    page = http.get("/authorize", params=authorize_params(client_id, challenge))
+    csp = page.headers["content-security-policy"]
+    assert "form-action 'self' https://claude.ai;" in csp
