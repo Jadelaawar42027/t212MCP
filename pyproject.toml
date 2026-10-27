@@ -1,0 +1,50 @@
+[project]
+name = "finance-mcp"
+version = "0.1.0"
+description = "Personal, read-only remote MCP server for brokerage accounts (Trading 212 first)."
+authors = [
+    { name = "jadelaawar42027", email = "alawar.jad@gmail.com" }
+]
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "httpx>=0.28",
+    "mcp>=2.3,<3",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "pyjwt>=2.9",
+    "pyotp>=2.9",
+    "uvicorn>=0.32",
+]
+
+[project.scripts]
+finance-mcp = "finance_mcp.server:main"
+
+[build-system]
+requires = ["uv_build>=0.12.12,<0.13.0"]
+build-backend = "uv_build"
+
+[dependency-groups]
+dev = [
+    "pytest>=9.0",
+    "pytest-asyncio>=1.4",
+    "respx>=0.23",
+    "ruff>=0.17",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+asyncio_mode = "auto"
+asyncio_default_fixture_loop_scope = "function"
+filterwarnings = ["error::DeprecationWarning:finance_mcp.*"]
+
+[tool.ruff]
+line-length = 110
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "S"]
+ignore = ["S101"]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S105", "S106", "S311"]
+"scripts/**" = ["S105", "S106"]
